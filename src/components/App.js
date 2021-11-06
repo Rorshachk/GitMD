@@ -1,49 +1,53 @@
 import React, { Component } from 'react';
-import logo from '../logo.svg'
-import tauriCircles from '../tauri.svg'
-import tauriWord from '../wordmark.svg'
-import {emit} from '@tauri-apps/api/event'
 import './App.css'
+import Editor from "./Editor";
+import {Dir, readTextFile, writeFile} from "@tauri-apps/api/fs";
+import SendToTauri from "../api/SendToTauri"
+
 
 class App extends Component {
+    constructor(props) {
+        console.log("constructor called.");
+        super(props);
+        this.state = {
+            loggedIn: -1,       //-1 means haven't read the config file yet, 0 means file doesn't exist, 1 means read successfully
+            directories: {},
+            mdFileList: [],
+            currentOpening: [],
+            currentActive: {},
+        };
+    }
+
+    componentDidMount() {
+        readTextFile('.GitMDConfig', {dir: Dir.Config }).then(this.ParseConfig).catch(this.CreateConfigFile);
+    }
+
+    CreateConfigFile = (reason) => {
+        console.log("create file" + reason);
+        writeFile({ path: '.GitMDConfig', contents: ""}, {dir: Dir.Config }).then(this.ParseConfig);
+    }
+
+
+    ParseConfig = (configString) => {
+        if(configString === null){
+            console.log("empty config");
+            this.setState({ loggedIn: 0 });
+        } else {
+            const configJson = JSON.parse(configString);
+            this.setState({
+                loggedIn: 1,
+                directories: configJson['directories'],
+            });
+
+            SendToTauri("credential", configJson["username"] + " " + configJson["credential"]);
+        }
+    }
+
   render() {
-    return (
-        <div className="App">
-          <header className="App-header">
-            <div className="inline-logo">
-              <img src={tauriCircles} className="App-logo rotate" alt="logo"/>
-              <img src={tauriWord} className="App-logo smaller" alt="logo"/>
-            </div>
-            <a
-                className="App-link"
-                href="https://tauri.studio"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-              Learn Tauri
-            </a>
-            <img src={logo} className="App-logo rotate" alt="logo"/>
-            <button type="button" onClick={() => {
-              emit('click', 'Tauri is awesome')
-              console.log('button clicked!')
-            }
-            }>shoot events!
-            </button>
-            <a
-                className="App-link"
-                href="https://reactjs.org"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-              Learn React
-            </a>
-            <p>
-              Edit <code>src/App.js</code> and save to reload.
-            </p>
-          </header>
-        </div>
+    return(
+        <Editor />
     );
   }
 }
 
-export default App
+export default App;
