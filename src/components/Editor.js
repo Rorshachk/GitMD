@@ -60,7 +60,7 @@ class Editor extends Component {
     render() {
         return (
             <div className="container">
-                <MDEditor height={1000} value={this.state.value} onChange={this.handleChange} />
+                <MDEditor height={1200} value={this.state.value} onChange={this.handleChange} />
             </div>
         );
     }
