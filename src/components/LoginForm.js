@@ -5,12 +5,12 @@ import SendToTauri from "../api/SendToTauri";
 
 
 function LoginForm(props) {
-    const [form] = Form.useForm();
 
     const onFinish = (values) => {
         const sentString = values['username'] + " " + values['PAT'] + " " + values['repo'] + " " + values['local'];
         console.log(values);
         console.log("success: ", sentString);
+        props.onLogin(values);
         SendToTauri("Login", sentString);
     };
 
