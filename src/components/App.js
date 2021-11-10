@@ -37,10 +37,11 @@ class App extends Component {
   };
 
   ParseConfig = (configString) => {
-    if (configString === null) {
+    if (configString === null || configString === "") {
       console.log("empty config");
       this.setState({ loggedIn: 0 });
     } else {
+        console.log("string read", configString);
       const configJson = JSON.parse(configString);
       this.setState({
         loggedIn: 1,
@@ -49,10 +50,18 @@ class App extends Component {
 
       SendToTauri(
         "credential",
-        configJson["username"] + " " + configJson["credential"]
+        configJson["username"] + " " + configJson["PAT"] + " " + configJson["local"]
       );
     }
   };
+
+  handleLogin = (values) => {
+      const textString = JSON.stringify(values);
+      writeFile({path: ".GitMDConfig", contents: textString}, {dir: Dir.Config}).then(
+          () => {this.ParseConfig(textString); }
+      );
+  }
+
 
   handleDirectoryClick = () => {
      console.log("Directory Clicked");
@@ -74,7 +83,7 @@ class App extends Component {
                   }}
               >
                 <Card title="Login" style={{ width: 600, margin: "auto"}}>
-                  <LoginForm />
+                  <LoginForm onLogin={this.handleLogin} />
                 </Card>
               </Content>
           </Layout>)
